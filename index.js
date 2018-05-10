@@ -3,6 +3,9 @@ const requestModul = require('request');
 const express = require('express');
 const app = express();
 const path = require('path');
+const events = require('events');
+const emitter = new events.EventEmitter;
+
 const PORT = process.env.PORT || 5000;
 
 const bodyParser = require("body-parser");
@@ -25,13 +28,12 @@ app.use(express.static(__dirname + '/public'));
 //.use(express.static(path.join(__dirname, 'public')))
   //.set('views', path.join(__dirname, 'views'))
   //.set('view engine', 'ejs')
+app.get('/', (req, res) => res.render('pages/index'));
 
 app.post("/register", urlencodedParser, function (request, response) {
-    if(!request.body) return response.sendStatus(400);
-    console.log(request.body);
-    response.send(`${request.body.userName}   ${request.body.password}
-    ${request.body.number}
-    ${request.body.searchWord}`);
+
+
+
     client
         .init()
         .url('https://www.instagram.com/')
@@ -49,22 +51,28 @@ app.post("/register", urlencodedParser, function (request, response) {
         .setValue('/html[1]/body[1]/span[1]/section[1]/nav[1]/div[2]/div[1]/div[1]/div[2]/input[1]', '#'+search_word)
         .pause(2000)
         .click('/html[1]/body[1]/span[1]/section[1]/nav[1]/div[2]/div[1]/div[1]/div[2]/div[2]/div[2]/div[1]/a[1]/div[1]')
-        .pause(4000)
+        .pause(2000)
         .getAttribute('/html[1]/body[1]/span[1]/section[1]/main[1]/article[1]/div[1]/div[1]/div[1]/div[1]/div[' + number_photo + ']/a[1]/div[1]/div[1]/img[1]', 'src')
         .then(src => {
             console.log(src);
-            console.log(request);
+            //console.log(request);
             requestModul.head(src, (err, res) => {
                 console.log('content-type:', res.headers['content-type']);
                 console.log('content-length:', res.headers['content-length']);
-                requestModul(src).pipe(fs.createWriteStream(file_name)).on('close', () => console.log('done'));
+                requestModul(src).pipe(fs.createWriteStream(file_name)).on('close', () => {
+                    console.log('done');
+                    if (!request.body) return response.sendStatus(400);
+                    console.log(src);
+                    console.log(request.body);
+                    response.send(`${request.body.userName}   ${request.body.password}
+                    ${request.body.number}
+                    ${request.body.searchWord}<br>
+                    ${src}`);
+                });
             });
         })
         .pause(4000)
         .end();
 });
-
-app.get('/', (req, res) => res.render('pages/index'));
-
 
 app.listen(PORT, () => console.log(`Listening on ${ PORT }`));
