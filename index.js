@@ -19,8 +19,8 @@ const client = webdriverio.remote(options);
 const file_name = path.join(__dirname, "Test_Worked.jpg");
 const login = 'aleksander.kun';
 const password = '7773439';
-const number_photo = 2;
-const search_word = "sea";
+let number_photo = 2;
+let search_word = "sea";
 
 app.use('/media', express.static(__dirname + '/media'));
 app.use(express.static(__dirname + '/public'));
@@ -32,8 +32,9 @@ app.get('/', (req, res) => res.render('pages/index'));
 
 app.post("/register", urlencodedParser, function (request, response) {
 
-
-
+    if (!request.body) return response.sendStatus(400);
+        number_photo = (request.body.number) ? request.body.number : number_photo;
+        search_word = (request.body.searchWord) ? request.body.searchWord : search_word;
     client
         .init()
         .url('https://www.instagram.com/')
@@ -55,7 +56,7 @@ app.post("/register", urlencodedParser, function (request, response) {
         .getAttribute('/html[1]/body[1]/span[1]/section[1]/main[1]/article[1]/div[1]/div[1]/div[1]/div[1]/div[' + number_photo + ']/a[1]/div[1]/div[1]/img[1]', 'src')
         .then(src => {
             console.log(src);
-            //console.log(request);
+
             requestModul.head(src, (err, res) => {
                 console.log('content-type:', res.headers['content-type']);
                 console.log('content-length:', res.headers['content-length']);
@@ -67,7 +68,7 @@ app.post("/register", urlencodedParser, function (request, response) {
                     response.send(`${request.body.userName}   ${request.body.password}
                     ${request.body.number}
                     ${request.body.searchWord}<br>
-                    ${src}`);
+                    ${src} <br><img src="${src}" alt="${request.body.searchWord}">`);
                 });
             });
         })
